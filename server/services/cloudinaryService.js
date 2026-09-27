@@ -1,4 +1,5 @@
-const cloudinary = require('cloudinary').v2;
+import cloudinaryPkg from 'cloudinary';
+const cloudinary = cloudinaryPkg.v2;
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -13,6 +14,11 @@ cloudinary.config({
  */
 const uploadPdfBuffer = (buffer) => {
   return new Promise((resolve, reject) => {
+    if (!process.env.CLOUDINARY_CLOUD_NAME) {
+      console.warn('Cloudinary is not configured. Skipping upload and returning empty URL.');
+      return resolve('');
+    }
+
     const uploadStream = cloudinary.uploader.upload_stream(
       {
         resource_type: 'raw',
@@ -20,7 +26,8 @@ const uploadPdfBuffer = (buffer) => {
       },
       (error, result) => {
         if (error) {
-          return reject(error);
+          console.error('Cloudinary upload error:', error);
+          return resolve(''); // Resolve with empty string instead of rejecting to prevent breaking generation
         }
         resolve(result.secure_url);
       }
@@ -30,6 +37,6 @@ const uploadPdfBuffer = (buffer) => {
   });
 };
 
-module.exports = {
+export default {
   uploadPdfBuffer,
 };
