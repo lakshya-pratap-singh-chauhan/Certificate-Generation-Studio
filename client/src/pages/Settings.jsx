@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useToast } from '../context/ToastContext';
-import { Save, Upload, Database, Scroll, ToggleLeft, ToggleRight, CheckCircle, FileText, UploadCloud, ShieldAlert, Award } from 'lucide-react';
+import { Save, Upload, Database, Scroll, ToggleLeft, ToggleRight, CheckCircle, FileText, UploadCloud, ShieldAlert, Award, RefreshCw } from 'lucide-react';
 
 export default function Settings() {
   const toast = useToast();
@@ -128,7 +128,7 @@ export default function Settings() {
     try {
       const formData = new FormData();
       formData.append(fieldname, file);
-      
+
       Object.entries(additionalBody).forEach(([key, val]) => {
         formData.append(key, val);
       });
@@ -140,7 +140,7 @@ export default function Settings() {
 
       if (response.ok) {
         toast.success(`${fieldname.toUpperCase()} uploaded successfully!`);
-        
+
         // Reset states
         if (fieldname === 'logo') setLogoFile(null);
         if (fieldname === 'signature') setSigFile(null);
@@ -155,6 +155,26 @@ export default function Settings() {
     } catch (error) {
       console.error(`File upload error:`, error);
       toast.error(`Connection error uploading ${fieldname}`);
+    }
+  };
+
+  const handleRemoveTemplate = async () => {
+    toast.info(`Removing custom template...`);
+    try {
+      const response = await fetch(`http://localhost:5000/api/settings/template/${templateType}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        toast.success(`Custom template removed successfully!`);
+        fetchSettings();
+        fetchAuditLogs();
+      } else {
+        toast.error(`Failed to remove template`);
+      }
+    } catch (error) {
+      console.error(`Template remove error:`, error);
+      toast.error(`Connection error removing template`);
     }
   };
 
@@ -201,14 +221,14 @@ export default function Settings() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
         {/* Left Column: Form Settings (7 Cols) */}
         <div className="lg:col-span-7 space-y-4">
-          
+
           {/* Company Settings Form */}
           <div className="glass-panel p-4 rounded-2xl border border-slate-200/50 dark:border-slate-800/40">
             <h3 className="text-md font-bold text-slate-800 dark:text-white font-sans border-b border-slate-100 dark:border-slate-800/80 pb-3 mb-3 flex items-center gap-2">
               <FileText className="w-5 h-5 text-blue-500" />
               Company & System Profile
             </h3>
-            
+
             <form onSubmit={handleSaveSettings} className="space-y-3">
               <div>
                 <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
@@ -295,7 +315,7 @@ export default function Settings() {
 
           {/* Logo & Signature Assets Upload */}
           <div className="glass-panel p-4 rounded-2xl border border-slate-200/50 dark:border-slate-800/40 grid grid-cols-1 md:grid-cols-2 gap-4">
-            
+
             {/* CEO Signature Upload */}
             <div className="space-y-3">
               <h3 className="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider">
@@ -311,7 +331,7 @@ export default function Settings() {
               ) : (
                 <p className="text-xs text-rose-500 font-medium">No CEO signature file uploaded yet.</p>
               )}
-              
+
               <div className="flex gap-2">
                 <input
                   type="file"
@@ -382,14 +402,14 @@ export default function Settings() {
 
         {/* Right Column: Template Files, DB Backups, Logs (5 Cols) */}
         <div className="lg:col-span-5 space-y-4">
-          
+
           {/* Template Replacements & Fonts */}
           <div className="glass-panel p-4 rounded-2xl border border-slate-200/50 dark:border-slate-800/40 space-y-3">
             <h3 className="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider flex items-center gap-2">
               <UploadCloud className="w-5 h-5 text-indigo-500" />
               Template Overrides & Fonts
             </h3>
-            
+
             {/* Custom Template Upload */}
             <div className="space-y-3 pt-2">
               <label className="block text-xs font-semibold text-slate-400 dark:text-slate-550 uppercase tracking-wider">
@@ -425,6 +445,17 @@ export default function Settings() {
                   Upload
                 </button>
               </div>
+              {settings[`${templateType}_template`] && (
+                <div className="flex justify-between items-center bg-slate-50 dark:bg-slate-900/50 p-2 rounded-lg mt-2 border border-slate-100 dark:border-slate-800">
+                  <span className="text-xs text-slate-500 font-medium">Custom {templateType.replace('_', ' ')} template is active.</span>
+                  <button
+                    onClick={handleRemoveTemplate}
+                    className="text-xs bg-rose-100 hover:bg-rose-200 text-rose-600 dark:bg-rose-900/30 dark:hover:bg-rose-900/50 dark:text-rose-400 font-semibold px-2 py-1 rounded transition-colors"
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Custom Font Upload */}
@@ -491,7 +522,7 @@ export default function Settings() {
                 Refresh
               </button>
             </h3>
-            
+
             <div className="max-h-56 overflow-y-auto space-y-2.5 pr-1 font-sans text-xs">
               {auditLogs.length === 0 ? (
                 <p className="text-center text-slate-400 dark:text-slate-500 py-6">No audit records found.</p>
