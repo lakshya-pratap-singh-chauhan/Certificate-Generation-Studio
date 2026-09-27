@@ -67,13 +67,14 @@ export const initDB = async () => {
   await run(`
     CREATE TABLE IF NOT EXISTS intern_records (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      intern_id INTEGER UNIQUE,
+      intern_id INTEGER,
       full_name TEXT NOT NULL,
       role TEXT NOT NULL,
       department TEXT,
       document_type TEXT NOT NULL, -- 'offer_letter' | 'certificate'
       duration TEXT NOT NULL,
       document_date TEXT NOT NULL,
+      pdf_location TEXT,
       offer_letter_pdf TEXT,
       certificate_pdf TEXT,
       status TEXT DEFAULT 'Active', -- 'Active' | 'Completed' | 'Revoked'
@@ -141,7 +142,9 @@ export const updateSettings = async (settings) => {
     'company_logo_path',
     'next_intern_id',
     'enable_draft_watermark',
-    'verification_base_url'
+    'verification_base_url',
+    'offer_letter_template',
+    'certificate_template'
   ];
 
   const sets = [];
@@ -183,6 +186,7 @@ export const addRecord = async (record) => {
     document_type,
     duration,
     document_date,
+    pdf_location,
     offer_letter_pdf,
     certificate_pdf,
     status = 'Active',
@@ -191,8 +195,8 @@ export const addRecord = async (record) => {
 
   const result = await run(
     `INSERT INTO intern_records 
-     (intern_id, full_name, role, department, document_type, duration, document_date, offer_letter_pdf, certificate_pdf, status, additional_details) 
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+     (intern_id, full_name, role, department, document_type, duration, document_date, pdf_location, offer_letter_pdf, certificate_pdf, status, additional_details) 
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       intern_id,
       full_name,
@@ -201,6 +205,7 @@ export const addRecord = async (record) => {
       document_type,
       duration,
       document_date,
+      pdf_location,
       offer_letter_pdf,
       certificate_pdf,
       status,
@@ -223,6 +228,7 @@ export const updateRecord = async (id, record) => {
     'department',
     'duration',
     'document_date',
+    'pdf_location',
     'offer_letter_pdf',
     'certificate_pdf',
     'status',
@@ -243,7 +249,7 @@ export const updateRecord = async (id, record) => {
 
   vals.push(id);
   await run(`UPDATE intern_records SET ${sets.join(', ')} WHERE id = ?`, vals);
-  
+
   const updated = await get('SELECT * FROM intern_records WHERE id = ?', [id]);
   await logAction('EDIT_RECORD', `Edited record for ${updated.full_name} (ID: ${updated.intern_id})`);
 };
