@@ -15,8 +15,8 @@ export default function Navbar({ activeTab, setActiveTab }) {
   return (
     <header className="sticky top-0 z-40 w-full glass-panel border-b border-slate-200/50 dark:border-slate-800/50 px-4 py-2 flex items-center justify-between">
       <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab('dashboard')}>
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-          <Award className="w-5.5 h-5.5 text-white" />
+        <div className="w-10 h-10 flex items-center justify-center">
+          <img src="/logo.png" alt="Ston Technology" className="w-full h-full object-contain drop-shadow-md" />
         </div>
         <div>
           <h1 className="text-lg font-bold tracking-tight text-slate-800 dark:text-white font-sans bg-clip-text bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300">
